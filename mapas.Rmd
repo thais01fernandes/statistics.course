@@ -1,0 +1,228 @@
+---
+title: "Untitled"
+author: "Thais Pereira"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(ggplot2)
+library(tidypod)
+library(dplyr)
+library(showtext)
+library(readxl)
+library(here)
+library(sf)
+library(patchwork)
+library(googlesheets4)
+# remotes::install_github("viniciusoike/tidypod")
+
+
+```
+
+
+
+```{r}
+
+font_add_google("Castoro", "Castoro")
+showtext_auto()
+
+
+```
+
+
+```{r}
+# bauxando dados
+
+# Import districts shapefile
+dstr <- tidypod::districts
+dstr <- filter(dstr, code_muni == 36)
+
+# Import Mapa Desigualdade Data
+# https://www.nossasaopaulo.org.br/campanhas/#13
+
+dados <- read_sheet("https://docs.google.com/spreadsheets/d/1rwccTFoG_-pujl-wmjIvlxRJdKSe_MoeAL8AIleHeoc/edit#gid=108835977", sheet = 4)
+
+sp <- dados %>% janitor::clean_names() %>% 
+  rename(name_district = distritos) %>%  
+  mutate(name_district = if_else(name_district == "Moóca", "Mooca", name_district))
+
+mapasp <- dstr %>% 
+  left_join(sp, by = "name_district")
+
+
+```
+
+
+
+```{r}
+
+pmap <- ggplot(mapasp, aes(fill = gravidez_na_adolescencia)) +
+  geom_sf() +
+  scale_fill_fermenter(
+    labels = scales::percent_format(scale = 1),
+    name = "",
+    palette = "Spectral",
+ #   breaks = seq(30, 20, 10),
+    direction = -1) +
+  labs(
+    title = "Gravidez na Adolescência",
+    subtitle = "Proporção (%) de nascidos vivos de parturientes 
+    com menos de 20 anos em relação ao total de nascidos vivos",
+    caption = "Fonte: Nossa São Paulo, Mapa da Desigualdade (2023)"
+    ) +
+  ggthemes::theme_map(base_family = "Castoro") +
+  theme(
+    legend.position  = "right",
+    legend.justification = 0.5,
+    legend.key.size = unit(0.5, "cm"),
+    legend.key.width = unit(1.25, "cm"),
+    legend.text = element_text(size = 12),
+    legend.margin = margin(),
+  #  plot.margin = margin(10, 5, 5, 10),
+    plot.title = element_text(size = 25, hjust = 0.5),
+    plot.subtitle = element_text(size = 12, hjust = 0.5,  colour = "#5c5863")
+  )
+
+```
+
+```{r}
+
+ggplot(mapasp, aes(fill = mortalidade_materna)) +
+  geom_sf() +
+  scale_fill_fermenter(
+    name = "",
+    palette = "Spectral",
+ #   breaks = seq(30, 20, 10),
+    direction = -1) +
+  labs(
+    title = "Mortalidade materna",
+    subtitle = "óbitos / 100.000 nascidos vivos",
+    caption = "Fonte: Nossa São Paulo, Mapa da Desigualdade (2023)"
+    ) +
+  ggthemes::theme_map(base_family = "Castoro") +
+  theme(
+    legend.position  = "right",
+    legend.justification = 0.5,
+    legend.key.size = unit(0.5, "cm"),
+    legend.key.width = unit(1.25, "cm"),
+    legend.text = element_text(size = 12),
+    legend.margin = margin(),
+  #  plot.margin = margin(10, 5, 5, 10),
+    plot.title = element_text(size = 25, hjust = 0.5),
+    plot.subtitle = element_text(size = 12, hjust = 0.5,  colour = "#5c5863")
+  )
+
+```
+
+```{r}
+
+ggplot(mapasp, aes(fill = mortalidade_infantil)) +
+  geom_sf() +
+  scale_fill_fermenter(
+    name = "",
+    palette = "Spectral",
+ #   breaks = seq(30, 20, 10),
+    direction = -1) +
+  labs(
+    title = "Mortalidade infantil",
+    subtitle = "Coeficiente de mortalidade infantil, para cada mil crianças 
+    nascidas vivas de mães residentes no distrito",
+    caption = "Fonte: Nossa São Paulo, Mapa da Desigualdade (2023)"
+    ) +
+  ggthemes::theme_map(base_family = "Castoro") +
+  theme(
+    legend.position  = "right",
+    legend.justification = 0.5,
+    legend.key.size = unit(0.5, "cm"),
+    legend.key.width = unit(1.25, "cm"),
+    legend.text = element_text(size = 12),
+    legend.margin = margin(),
+  #  plot.margin = margin(10, 5, 5, 10),
+    plot.title = element_text(size = 25, hjust = 0.5),
+    plot.subtitle = element_text(size = 12, hjust = 0.5,  colour = "#5c5863")
+  )
+
+```
+
+```{r}
+
+ggplot(mapasp, aes(fill = tempo_medio_para_consultas_na_atencao_basica)) +
+  geom_sf() +
+  scale_fill_fermenter(
+    name = "",
+    palette = "Spectral",
+ #   breaks = seq(30, 20, 10),
+    direction = -1) +
+  labs(
+    title = "Consultas na atenção básica de saúde",
+    subtitle = "Tempo médio (em dias) de espera para consultas 
+    na atenção primária",
+    caption = "Fonte: Nossa São Paulo, Mapa da Desigualdade (2023)"
+    ) +
+  ggthemes::theme_map(base_family = "Castoro") +
+  theme(
+    legend.position  = "right",
+    legend.justification = 0.5,
+    legend.key.size = unit(0.5, "cm"),
+    legend.key.width = unit(1.25, "cm"),
+    legend.text = element_text(size = 12),
+    legend.margin = margin(),
+  #  plot.margin = margin(10, 5, 5, 10),
+    plot.title = element_text(size = 25, hjust = 0.5),
+    plot.subtitle = element_text(size = 12, hjust = 0.5,  colour = "#5c5863")
+  )
+
+
+```
+
+```{r}
+
+ggplot(mapasp, aes(fill = mortalidade_por_covid_19)) +
+  geom_sf() +
+  scale_fill_fermenter(
+    labels = scales::percent_format(scale = 1),
+    name = "",
+    palette = "Spectral",
+ #   breaks = seq(30, 20, 10),
+    direction = -1) +
+  labs(
+    title = "Mortalidade por Covid-19",
+    subtitle = "Proporção (%) de óbitos por covid-19 em relação ao total de óbitos",
+    caption = "Fonte: Nossa São Paulo, Mapa da Desigualdade (2023)"
+    ) +
+  ggthemes::theme_map(base_family = "Castoro") +
+  theme(
+    legend.position  = "right",
+    legend.justification = 0.5,
+    legend.key.size = unit(0.5, "cm"),
+    legend.key.width = unit(1.25, "cm"),
+    legend.text = element_text(size = 12),
+    legend.margin = margin(),
+  #  plot.margin = margin(10, 5, 5, 10),
+    plot.title = element_text(size = 25, hjust = 0.5),
+    plot.subtitle = element_text(size = 12, hjust = 0.5,  colour = "#5c5863")
+  )
+
+sp
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
