@@ -1,0 +1,124 @@
+---
+title: "experimentando python"
+author: "Thais Pereira"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r}
+
+library(glue)
+library(rminiconda)
+library(tidyverse)
+
+env_name <- "testando_rminiconda"
+
+check_setup_rminiconda <- function(env_name) {
+  python_for_r <- rminiconda::find_miniconda_python(env_name)
+  reticulate::use_python(python_for_r, required = TRUE)
+  message(glue("Ambiente `{env_name}` configurado no `reticulate`!"))
+}
+
+install_setup_rminiconda <- function(env_name) {
+  if (rminiconda::is_miniconda_installed(name = env_name)) {
+    message(glue("Ambiente `{env_name}` já existe!"))
+    check_setup_rminiconda(env_name)
+  } else {
+    message("Instalando novo ambiente: `{env_name}`!")
+    rminiconda::install_miniconda(name = env_name)
+    check_setup_rminiconda(env_name)
+  }
+}
+
+install_setup_rminiconda(env_name)
+
+rminiconda::test_miniconda(env_name)
+
+# Instalação das bibliotecas do python pelo R
+
+pip_install_pkg <- function(pkgs_py, update = FALSE) {
+  
+  if (update == TRUE) {
+    pip_update_arg <- "-U"
+  } else {
+    pip_update_arg <- ""
+  }
+  
+  pkgs_py %>% 
+  purrr::map(
+    ~rminiconda_pip_install(
+      pkg_name = .x,
+      name = env_name, 
+      args = pip_update_arg
+      )
+    ) 
+}
+
+pkgs_py <- c(
+  "pandas",
+  "numpy",
+  "matplotlib"
+  )
+
+
+pip_install_pkg(pkgs_py)
+
+```
+
+
+
+```{python}
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+```
+
+
+
+```{python}
+
+df = pd.DataFrame(
+    np.random.randint(0, 100, size=(100, 4)
+  ), 
+  columns=list('ABCD')
+  )
+
+```
+
+
+```{python}
+
+
+fig = plt.figure()
+plt.scatter(df['A'], df['B'])
+plt.title('Scatter plot em python dentro do R')
+plt.xlabel('Coluna A')
+plt.ylabel('Coluna B')
+plt.show()
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
