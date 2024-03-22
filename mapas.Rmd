@@ -214,6 +214,68 @@ sp
 ```
 
 
+```{r}
+
+pmap <- ggplot(mapasp, aes(fill = idade_media_ao_morrer)) +
+  geom_sf() +
+  scale_fill_fermenter(
+    name = "",
+    palette = "Spectral",
+    breaks = seq(55, 85, 5),
+    direction = 1) +
+  labs(
+    title = "Expectativa de Vida",
+    subtitle = "Idade média ao morrer por distrito em São Paulo",
+    caption = "Fonte: Nossa São Paulo, Mapa da Desigualdade (2023)"
+    ) +
+  ggthemes::theme_map(base_family = "Castoro") +
+  theme(
+    legend.position  = "top",
+    legend.justification = 0.5,
+    legend.key.size = unit(0.5, "cm"),
+    legend.key.width = unit(1.25, "cm"),
+    legend.text = element_text(size = 12),
+    legend.margin = margin(),
+    plot.margin = margin(10, 5, 5, 10),
+    plot.title = element_text(size = 28, hjust = 0.5),
+    plot.subtitle = element_text(size = 14, hjust = 0.5,  colour = "#5c5863")
+  )
+
+count_group <- mapasp |> 
+  st_drop_geometry() |> 
+  as_tibble() |> 
+  mutate(
+    group = findInterval(idade_media_ao_morrer, seq(55, 85, 5))
+  ) |> 
+  summarise(
+    count = n(),
+    min = min(idade_media_ao_morrer),
+    pop = sum(populacao_total),
+    .by = "group"
+  ) |> 
+  mutate(share = pop / sum(pop) * 100) |> 
+  arrange(group)
+
+pcol <- ggplot(count_group, aes(x = group, y = share, fill = as.factor(group))) +
+  geom_col() +
+  geom_text(
+    family = "Castoro",
+    size = 5,
+    aes(x = group, y = share + 2, label = round(share, 1))
+    ) +
+  labs(title = stringr::str_wrap("Percentual da população dentro de cada grupo", 25)) +
+  scale_fill_brewer(palette = "Spectral") +
+  guides(fill = 'none') +
+  theme_void(base_family = "Castoro") +
+  theme(plot.title = element_text(size = 10, hjust = 0))
+
+map_expectativa_de_vida <- 
+  pmap + inset_element(pcol, left = 0.55, bottom = 0.05, right = 1, top = 0.4)
+
+
+map_expectativa_de_vida
+
+```
 
 
 
